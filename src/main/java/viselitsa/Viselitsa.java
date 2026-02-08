@@ -1,0 +1,183 @@
+package viselitsa;
+
+import java.awt.SystemColor;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Random;
+
+/**
+ *
+ * @author tunyaa
+ */
+public class Viselitsa {
+
+    private static BufferedReader reader;
+    private static String consoleArg = "";
+    private static int guessedWord;
+    private static int life;// Жизни сохраняются между играми
+
+    static {
+        reader = new BufferedReader(new InputStreamReader(System.in));
+    }
+
+    private static String readLine() throws IOException {
+        return reader.readLine();
+    }
+
+    public static void main(String[] args) throws IOException {
+        viselitsaMenu();
+    }
+
+    // Меню(Начать игру\ выход\ выбор сложности)
+    private static void viselitsaMenu() throws IOException {
+
+        while (true) {
+            System.out.println("'1' - Чтобы начать игру.                    '0' - Чтобы выйти.");
+            consoleArg = readLine();
+            // Выход
+            if (consoleArg.equals("0")) {
+                return;
+            }
+            // Начать игру
+            if (consoleArg.equals("1")) {
+
+                System.out.println("Выберете сложность:\n'1' - До 5 букв.\n'2' - 5 - 8 букв.\n'3' - 8 и более букв");
+                consoleArg = readLine();
+                String word = "";
+
+                // На новую игру добавляются жизни
+                if (consoleArg.equals("1")) {// Сложность 1
+                    System.out.println("Добавляется 6 жизней");
+                    life += 6;
+                    word = getRandomWordByDifficult(1);
+                } else if (consoleArg.equals("2")) {// Сложность 2
+                    System.out.println("Добавляется 5 жизней");
+                    life += 5;
+                    word = getRandomWordByDifficult(2);
+                } else if (consoleArg.equals("3")) {// Сложность 3
+                    System.out.println("Добавляется 3 жизни");
+                    life += 3;
+                    word = getRandomWordByDifficult(3);
+                }
+                // Начинается игра
+                if (word.length() != 0) {
+                    viselitsaGameStart(word);
+                } else {
+                    System.out.println("Сложность не выбрана.");
+                }
+            }
+        }
+    }
+
+    // Подбор случайного слова по сложности 1- до 5 букв, 2 - 5 - 8 букв, 3 - 9 и более букв.
+    private static String getRandomWordByDifficult(int dif) throws IOException {
+
+        // Читаем слова из файла
+        List<String> words = Files.readAllLines(Path.of("words"));
+
+        while (true) {
+
+            // Получаем рандомное число на основе количества слов
+            int random = new Random().nextInt(words.size());
+
+            // Получаем рандомное слово
+            String word = words.get(random);
+
+            // Проверяем соотвествует ли слово сложности, возвращаем слово
+            if (dif == 1) {// Менее 5 букв
+                if (word.length() <= 5) {
+                    return word;
+                }
+            }
+            if (dif == 2) {// От 5 до 8 букв
+                if (word.length() >= 5 && word.length() <= 8) {
+                    return word;
+                }
+            }
+            if (dif == 3) {// От 8 букв
+                if (word.length() >= 8) {
+                    return word;
+                }
+            }
+        }
+    }
+
+    // Начало игры(отгадывание слова)
+    private static void viselitsaGameStart(String word) throws IOException {
+
+        // Форматируем к общему виду
+        word = word.toLowerCase();
+
+        // Слово "прячется" за символы
+        StringBuilder hiddenWord = new StringBuilder("#".repeat(word.length()));
+        // Буквы, которых нет в слове
+        StringBuilder lettersNotContains = new StringBuilder();
+
+        System.out.println("Загадано слово - " + hiddenWord + "  Количество букв -" + word.length()
+                + ". Количество жизней - " + life + " Слов отгадано - " + guessedWord);
+
+        while (life > 0) {
+            System.out.println("Введите букву                   '0' - Чтобы выйти");
+            System.out.println("[   " + hiddenWord + "   ]                   Количество жизней - " + life);
+            consoleArg = readLine();
+            // Выход из текущей игры
+            if (consoleArg.startsWith("0")) {
+                life = 0;
+                return;
+            }
+            // Если строка null, с длиной 0, в ней сесть цифры, символы, пробелы
+            if (consoleArg == null || consoleArg.matches("^(?!^[а-яА-ЯёЁ]+$).*$")) {
+                System.out.println("Не дожно быть цифр, пробелов и символов. Только русские буквы.");
+                continue;
+            } else {
+                // Если введено несколько символов, берется символ по индексу 0
+                consoleArg = consoleArg.substring(0, 1).toLowerCase();
+                System.out.println("Ведена буква - " + consoleArg.toUpperCase());
+            }
+            // Буква отгадана. Буквы открывается в слове.
+            if (word.contains(consoleArg)) {
+                System.out.println("Есть такая буква!");
+                // Если повторно вводится отгаданная буква
+                if (hiddenWord.indexOf(consoleArg) != -1) {
+                    System.out.println("Эта буква уже отгадана.");
+                    continue;
+                }
+                // # заменяются на угаданную букву
+                for (int i = 0; i < word.length(); i++) {
+                    if (word.charAt(i) == consoleArg.charAt(0)) {
+                        hiddenWord.setCharAt(i, consoleArg.charAt(0));
+                    }
+                }
+                // Если в отгадываемом слове не осталось #, значит слово отгадано
+                if (hiddenWord.indexOf("#") == -1) {
+                    System.out.println("Победа! Это слово - " + word.toUpperCase());
+                    System.out.println("За отгаданное слово добавляется 3 жизни.");
+                    life += 3;
+                    guessedWord += 1;
+                    return;
+                }
+            } else {// Буква не отгадана. Минус одна жизнь.
+                // Если повторно  вводится буква которой нет в слове
+                if (lettersNotContains.indexOf(consoleArg.toUpperCase()) != -1) {
+                    System.out.println("Такую букву уже пробовали");
+                    continue;
+                }
+                System.out.println("Такой буквы нет.          Одна попытка минус...            ");
+                lettersNotContains.append(consoleArg.toUpperCase()).append(" ");
+                life -= 1;
+            }
+
+            System.out.println("Буквы, которых нет в слове - " + lettersNotContains);
+
+        }
+        // Если life == 0, цикл завершается
+        System.out.println("Жизни закончились");
+        System.out.println("Загаданное слово - " + word.toUpperCase());
+        System.out.println("Отгадано слов - " + guessedWord);
+    }
+
+}
