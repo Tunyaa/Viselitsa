@@ -49,6 +49,7 @@ public class Viselitsa {
             }
         }
         // OFF
+        off();
     }
 
     // Выбор сложности
@@ -204,4 +205,11 @@ public class Viselitsa {
         }
         return "0";
     }
+     private static void off(){
+        try {
+            reader.close();
+        } catch (IOException ex) {
+            System.getLogger(Viselitsa.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+        }
+     }
 }
