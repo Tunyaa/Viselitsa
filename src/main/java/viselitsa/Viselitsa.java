@@ -16,7 +16,7 @@ public class Viselitsa {
 
     private static BufferedReader reader;
     private static List<String> words;
-    private static String consoleArg;
+    private static String consoleArg = "";
     private static int guessedWords;
     private static int life;// Жизни сохраняются между играми
 
@@ -36,14 +36,11 @@ public class Viselitsa {
 
     // Меню(Начать игру\ выход\ выбор сложности)
     private static void viselitsaMenu() throws IOException {
-
-        while (true) {
+        // Условие для выхода
+        while (!consoleArg.equals("0")) {
             System.out.println("'1' - Чтобы начать игру.                    '0' - Чтобы выйти.");
             consoleArg = readLine();
-            // Выход
-            if (consoleArg.equals("0")) {
-                return;
-            }
+
             // Начать игру
             if (consoleArg.equals("1")) {
 
@@ -78,34 +75,20 @@ public class Viselitsa {
     // Подбор случайного слова по сложности 1- до 5 букв, 2 - 5 - 8 букв, 3 - 9 и более букв.
     private static String getRandomWordByDifficult(int dif) throws IOException {
 
-        // Читаем слова из файла
-//        List<String> words = Files.readAllLines(Path.of("src/main/resources/words"));
-//        List<String> words = loadWordsFromResources();
-        while (true) {
+        // Условия для сложности [Сложность - 1][от, до]
+        int[][] difficultyСondition = new int[][]{{1, 5}, {5, 8}, {8, 30}};
 
+        String word;
+        do {
             // Получаем рандомное число на основе количества слов
             int random = new Random().nextInt(words.size());
 
             // Получаем рандомное слово
-            String word = words.get(random);
+            word = words.get(random);
 
-            // Проверяем соотвествует ли слово сложности, возвращаем слово
-            if (dif == 1) {// Менее 5 букв
-                if (word.length() <= 5) {
-                    return word;
-                }
-            }
-            if (dif == 2) {// От 5 до 8 букв
-                if (word.length() >= 5 && word.length() <= 8) {
-                    return word;
-                }
-            }
-            if (dif == 3) {// От 8 букв
-                if (word.length() >= 8) {
-                    return word;
-                }
-            }
-        }
+        } while (!(word.length() >= difficultyСondition[dif - 1][0] == word.length() <= difficultyСondition[dif - 1][1]));
+
+        return word;
     }
 
     // Начало игры(отгадывание слова)
@@ -129,6 +112,7 @@ public class Viselitsa {
             // Выход из текущей игры
             if (consoleArg.startsWith("0")) {
                 life = 0;
+                consoleArg = "";
                 return;
             }
             // Если строка null, с длиной 0, в ней сесть цифры, символы, пробелы
