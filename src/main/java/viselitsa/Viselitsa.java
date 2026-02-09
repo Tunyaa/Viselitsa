@@ -1,11 +1,10 @@
 package viselitsa;
 
-import java.awt.SystemColor;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -16,12 +15,15 @@ import java.util.Random;
 public class Viselitsa {
 
     private static BufferedReader reader;
-    private static String consoleArg = "";
-    private static int guessedWord;
+    private static List<String> words;
+    private static String consoleArg;
+    private static int guessedWords;
     private static int life;// Жизни сохраняются между играми
 
     static {
         reader = new BufferedReader(new InputStreamReader(System.in));
+        words = new ArrayList<>();
+        loadWordsFromResources();
     }
 
     private static String readLine() throws IOException {
@@ -77,8 +79,8 @@ public class Viselitsa {
     private static String getRandomWordByDifficult(int dif) throws IOException {
 
         // Читаем слова из файла
-        List<String> words = Files.readAllLines(Path.of("words"));
-
+//        List<String> words = Files.readAllLines(Path.of("src/main/resources/words"));
+//        List<String> words = loadWordsFromResources();
         while (true) {
 
             // Получаем рандомное число на основе количества слов
@@ -110,7 +112,7 @@ public class Viselitsa {
     private static void viselitsaGameStart(String word) throws IOException {
 
         // Форматируем к общему виду
-        word = word.toLowerCase();
+        word = word.toUpperCase();
 
         // Слово "прячется" за символы
         StringBuilder hiddenWord = new StringBuilder("#".repeat(word.length()));
@@ -118,7 +120,7 @@ public class Viselitsa {
         StringBuilder lettersNotContains = new StringBuilder();
 
         System.out.println("Загадано слово - " + hiddenWord + "  Количество букв -" + word.length()
-                + ". Количество жизней - " + life + " Слов отгадано - " + guessedWord);
+                + ". Количество жизней - " + life + " Слов отгадано - " + guessedWords);
 
         while (life > 0) {
             System.out.println("Введите букву                   '0' - Чтобы выйти");
@@ -135,7 +137,7 @@ public class Viselitsa {
                 continue;
             } else {
                 // Если введено несколько символов, берется символ по индексу 0
-                consoleArg = consoleArg.substring(0, 1).toLowerCase();
+                consoleArg = consoleArg.substring(0, 1).toUpperCase();
                 System.out.println("Ведена буква - " + consoleArg.toUpperCase());
             }
             // Буква отгадана. Буквы открывается в слове.
@@ -157,7 +159,7 @@ public class Viselitsa {
                     System.out.println("Победа! Это слово - " + word.toUpperCase());
                     System.out.println("За отгаданное слово добавляется 3 жизни.");
                     life += 3;
-                    guessedWord += 1;
+                    guessedWords += 1;
                     return;
                 }
             } else {// Буква не отгадана. Минус одна жизнь.
@@ -177,7 +179,38 @@ public class Viselitsa {
         // Если life == 0, цикл завершается
         System.out.println("Жизни закончились");
         System.out.println("Загаданное слово - " + word.toUpperCase());
-        System.out.println("Отгадано слов - " + guessedWord);
+        System.out.println("Отгадано слов - " + guessedWords);
+    }
+
+    // Загружаем слова из файла
+    private static void loadWordsFromResources() {
+
+        // Загржаем файл
+        try (InputStream inputStream = Viselitsa.class
+                .getResourceAsStream("/words.txt")) {
+
+            if (inputStream == null) {
+                System.out.println("Файл words.txt не найден в ресурсах");
+            }
+
+            try (BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(inputStream))) {
+                // Сохраняем слова в массив
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    line = line.trim();
+                    if (!line.isEmpty()) {
+                        words.add(line.toUpperCase());
+                    }
+                }
+
+                System.out.println("Загружено " + words.size() + " слов");
+
+            }
+        } catch (IOException e) {
+            System.err.println("Ошибка загрузки словаря: " + e.getMessage());
+        }
+
     }
 
 }
